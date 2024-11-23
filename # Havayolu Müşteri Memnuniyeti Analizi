@@ -1,0 +1,81 @@
+1. Veri Setini Yükleme ve İlk İnceleme
+
+import pandas as pd
+import numpy as np
+
+# Veri setini okuma
+data = pd.read_csv('/kaggle/input/airline-dataset/Airline Dataset.csv')
+
+# Veri setinin ilk 5 satırına göz atalım
+data.head()
+
+## Veri Setini Tanıyalım
+Yukarıdaki kod, veri setindeki ilk 5 satırı görüntüler. Bu, veri setinin genel yapısını ve sütun adlarını anlamamıza yardımcı olur. Aşağıdaki soruları sormamız önemli:
+- Kaç tane sütun ve satır var?
+- Sütun adları, veri türleri nedir?
+- Hangi sütunlar eksik değerlere sahip?
+Bir sonraki adımda, veri setine daha detaylı bir şekilde bakalım.
+
+# 2. Veri seti hakkında genel bilgi alalım
+data.info()
+
+# Eksik değerleri kontrol edelim
+data.isnull().sum()
+
+### Genel Bilgiler:
+- `info()` fonksiyonu, her sütunun veri tipini ve kaç tane eksik değere sahip olduğunu gösterir.
+- `isnull().sum()` ile eksik değerlerin sütun bazında toplamını görebiliriz.
+- Eğer eksik değerler varsa, bunları doldurmak ya da çıkarmak için karar vermemiz gerekecek.
+
+2. Keşifsel Veri Analizi (EDA)
+
+# Memnuniyet sütunundaki değerlerin dağılımını inceleyelim
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.countplot(data=data, x='satisfaction', palette='viridis')
+plt.title('Memnuniyet Dağılımı')  # Grafiğe başlık ekleyelim
+plt.show()
+
+3. Veri Temizleme ve Ön İşleme
+
+# Eksik değerleri dolduralım
+data.fillna(data.median(), inplace=True)  # Eksik değerleri sütunların ortanca değeri ile dolduralım
+
+# Kategorik verileri sayısal hale getirelim
+data = pd.get_dummies(data, columns=['Gender', 'Class'], drop_first=True)
+
+# Son halini kontrol edelim
+data.head()
+
+4. Korelasyon Analizi ve Görselleştirme
+
+# Korelasyon matrisi oluşturalım
+corr = data.corr()
+
+# Korelasyon matrisini görselleştirelim
+plt.figure(figsize=(12, 8))
+sns.heatmap(corr, annot=True, fmt=".2f", cmap='coolwarm')
+plt.title('Korelasyon Matrisi')
+plt.show()
+
+5. Makine Öğrenimi Modeli
+
+# Hedef değişken ve bağımsız değişkenleri ayıralım
+X = data.drop(['satisfaction'], axis=1)  # Bağımsız değişkenler
+y = data['satisfaction'].apply(lambda x: 1 if x == 'satisfied' else 0)  # Hedef değişken
+
+# Eğitim ve test setlerine bölelim
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Model oluşturma
+from sklearn.ensemble import RandomForestClassifier
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# Tahmin ve değerlendirme
+y_pred = model.predict(X_test)
+from sklearn.metrics import classification_report, accuracy_score
+print("Doğruluk Skoru:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
